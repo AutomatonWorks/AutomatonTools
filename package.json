@@ -1,0 +1,219 @@
+{
+    "name": "automaton-vscode",
+    "displayName": "Automaton tools",
+    "description": "Run, compile, deploy, generate images, link commons and pull for the Automaton repos and the manager",
+    "version": "0.9.3",
+    "publisher": "automatonworks",
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "icon": "icon.png",
+    "main": "./extension.js",
+    "activationEvents": [
+        "workspaceContains:**/app/Constants.ahk2",
+        "workspaceContains:**/run.py"
+    ],
+    "contributes": {
+        "commands": [
+            {
+                "command": "automaton.run",
+                "title": "Run automaton",
+                "icon": "$(play)"
+            },
+            {
+                "command": "automaton.run.pick",
+                "title": "Run...",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.compile",
+                "title": "Compile automaton",
+                "icon": "$(gear)"
+            },
+            {
+                "command": "automaton.compile.pick",
+                "title": "Compile...",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.compile.all",
+                "title": "Compile All",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.images",
+                "title": "Generate Images (current file's game)",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.images.pick",
+                "title": "Generate Images...",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.images.all",
+                "title": "Generate Images All",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.link",
+                "title": "Setup Commons Link (current file's game)",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.link.pick",
+                "title": "Setup Commons Link...",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.link.all",
+                "title": "Setup Commons Link All",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.deploy",
+                "title": "Deploy (current file's game)",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.deploy.pick",
+                "title": "Deploy...",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.compiledeploy",
+                "title": "Compile and Deploy (current file's game)",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.compiledeploy.pick",
+                "title": "Compile and Deploy...",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.configureAll",
+                "title": "Choose projects for All",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.openSettings",
+                "title": "Settings",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.pull.all",
+                "title": "Fetch and Pull All",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.configurePull",
+                "title": "Choose repos for Fetch and Pull",
+                "category": "Automaton"
+            },
+            {
+                "command": "automaton.stop",
+                "title": "Stop running games",
+                "category": "Automaton"
+            }
+        ],
+        "menus": {
+            "editor/title": [
+                {
+                    "command": "automaton.run",
+                    "when": "(resourceLangId == ahk2 && automaton.inGame) || automaton.inPythonProject",
+                    "group": "navigation@-20"
+                },
+                {
+                    "command": "automaton.compile",
+                    "when": "(resourceLangId == ahk2 && automaton.inGame) || automaton.inPythonProject",
+                    "group": "navigation@-19"
+                }
+            ]
+        },
+        "configuration": {
+            "title": "Automaton tools",
+            "properties": {
+                "automaton.autohotkeyPath": {
+                    "type": "string",
+                    "default": "C:\\Program Files\\AutoHotkey\\v2\\AutoHotkey64.exe",
+                    "description": "AutoHotkey v2 executable used to run commons AppCompiler.ahk"
+                },
+                "automaton.projects": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [
+                        "GI-Automaton",
+                        "HSR-Automaton",
+                        "ZZZ-Automaton",
+                        "AutomatonManager"
+                    ],
+                    "order": 0,
+                    "description": "Workspace folders that are Automaton projects (folder name)."
+                },
+                "automaton.allProjects": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [
+                        "GI-Automaton",
+                        "ZZZ-Automaton"
+                    ],
+                    "order": 1,
+                    "description": "Projects included in the All commands (folder name)."
+                },
+                "automaton.notRunnable": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [
+                        "GUI",
+                        "commons",
+                        "internal-tools"
+                    ],
+                    "order": 2,
+                    "description": "Workspace folders whose scripts are never run or compiled (folder name). The AutoHotkey play button is hidden in them too."
+                },
+                "automaton.pullProjects": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [
+                        "GI-Automaton",
+                        "HSR-Automaton",
+                        "ZZZ-Automaton",
+                        "AutomatonManager",
+                        "GUI",
+                        "commons",
+                        "internal-tools",
+                        "AutomatonTools"
+                    ],
+                    "order": 3,
+                    "description": "Git repos included in Fetch and Pull All and in the periodic fetch (workspace folder name)."
+                },
+                "automaton.autoFetch": {
+                    "type": "boolean",
+                    "default": true,
+                    "order": 4,
+                    "description": "Fetch the Fetch and Pull repos periodically and offer to pull when one has new commits."
+                },
+                "automaton.autoFetchSeconds": {
+                    "type": "number",
+                    "default": 60,
+                    "minimum": 10,
+                    "order": 5,
+                    "description": "Seconds between periodic fetches."
+                },
+                "automaton.pythonPath": {
+                    "type": "string",
+                    "default": "python",
+                    "description": "Python executable used for the image generator and to start build.py of Python projects"
+                }
+            }
+        }
+    }
+}
