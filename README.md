@@ -27,6 +27,8 @@ On any file of a project, two editor title buttons appear first on the left: "Ru
 
 In a project the Python extensions' own run buttons ("Run Python File", "Run as task") are hidden, and their debug buttons only show on `src\Main.py`; files under `.tools` keep all of them. Those extensions have no setting for it, so on activation the extension adds the context keys `automatonWorks.blockPythonRun` and `automatonWorks.projectMain` to their `editor/title/run` conditions, again after each of their updates, and offers a window reload.
 
+The extension updates itself: at start and every 6 hours it reads the latest release of AutomatonWorks/AutomatonTools on GitHub and, when its version is newer than the installed one, downloads its vsix, installs it into the current profile, carries the per-project commands over and offers a window reload. Checks and failures go to the `Automaton Update` output channel.
+
 ## Settings
 
 - `automaton.projects`: workspace folder names that are Automaton projects. Add or remove projects here, no rebuild needed.

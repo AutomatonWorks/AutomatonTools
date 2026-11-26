@@ -6,6 +6,7 @@ const { registerGameCommands } = require("./game_commands");
 const { registerGitSync } = require("./git_sync");
 const { killReplacedProcess } = require("./process_kill");
 const { registerPythonButtons } = require("./python_buttons");
+const { registerSelfUpdate } = require("./self_update");
 
 const ACTION_IDS = ["run", "compile", "deploy", "compiledeploy"];
 const NO_ALL_ACTIONS = ["run", "deploy", "compiledeploy"];
@@ -213,6 +214,7 @@ function activate(context) {
     registerGameCommands(context, runActionOnFolder);
     registerGitSync(context);
     registerPythonButtons(context);
+    registerSelfUpdate(context);
     context.subscriptions.push(vscode.commands.registerCommand("automaton.configureAll", configureAll));
     context.subscriptions.push(vscode.commands.registerCommand("automaton.openSettings", openSettings));
     context.subscriptions.push(

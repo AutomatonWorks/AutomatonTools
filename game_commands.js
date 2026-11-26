@@ -24,8 +24,7 @@ function commandSpecs() {
 }
 
 // Palette entries only exist in package.json, so the installed manifest is rewritten and the window needs a reload.
-function syncManifest(context, specs) {
-    const manifestPath = path.join(context.extensionPath, "package.json");
+function writeProjectCommands(manifestPath, specs) {
     const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
     const fixedCommands = manifest.contributes.commands.filter((entry) => !PER_GAME_COMMAND.test(entry.command));
     const gameCommands = specs.map((spec) => ({ command: spec.command, title: spec.title, category: "Automaton" }));
@@ -65,7 +64,7 @@ function registerGameCommands(context, runActionOnFolder) {
                 registered.set(spec.command, vscode.commands.registerCommand(spec.command, () => runActionOnFolder(spec.action, spec.folder)));
             }
         }
-        if (syncManifest(context, specs)) {
+        if (writeProjectCommands(path.join(context.extensionPath, "package.json"), specs)) {
             offerReload();
         }
     };
@@ -82,4 +81,9 @@ function registerGameCommands(context, runActionOnFolder) {
     refresh();
 }
 
-module.exports = { registerGameCommands };
+// An update installs a manifest without the per-project commands; carrying ours over saves a second reload.
+function carryProjectCommands(manifestPath) {
+    writeProjectCommands(manifestPath, commandSpecs());
+}
+
+module.exports = { registerGameCommands, carryProjectCommands };

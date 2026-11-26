@@ -93,6 +93,7 @@ def build(seed_installed):
         archive.write(ROOT / "executions.js", "extension/executions.js")
         archive.write(ROOT / "process_kill.js", "extension/process_kill.js")
         archive.write(ROOT / "python_buttons.js", "extension/python_buttons.js")
+        archive.write(ROOT / "self_update.js", "extension/self_update.js")
         archive.write(ROOT / "icon.png", "extension/icon.png")
     return vsix
 

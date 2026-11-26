@@ -81,7 +81,7 @@ package = {
     "name": "automaton-vscode",
     "displayName": "Automaton tools",
     "description": "Run, compile, deploy and pull for the AutomatonWorks Python repos and the manager",
-    "version": "0.10.0",
+    "version": "0.11.0",
     "publisher": "automatonworks",
     "engines": {"vscode": "^1.85.0"},
     "icon": "icon.png",
