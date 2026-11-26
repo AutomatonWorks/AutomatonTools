@@ -1,13 +1,16 @@
 const vscode = require("vscode");
 const path = require("path");
-const { findGames, isInNotRunnableFolder, configureAll, openSettings } = require("./projects");
+const { findGames, configureAll, openSettings } = require("./projects");
 const { buildExecution, missingPrerequisite } = require("./executions");
 const { registerGameCommands } = require("./game_commands");
 const { registerGitSync } = require("./git_sync");
 const { killReplacedProcess } = require("./process_kill");
+const { registerPythonButtons } = require("./python_buttons");
 
-const ACTION_IDS = ["run", "compile", "images", "link", "deploy", "compiledeploy"];
+const ACTION_IDS = ["run", "compile", "deploy", "compiledeploy"];
 const NO_ALL_ACTIONS = ["run", "deploy", "compiledeploy"];
+const TOOLS_FOLDER = ".tools";
+const MAIN_FILE = path.join("src", "main.py");
 
 function isInside(root, file) {
     const relative = path.relative(root, file);
@@ -20,6 +23,15 @@ function gameOfActiveFile(games) {
         return null;
     }
     return games.find((game) => isInside(game.root, editor.document.uri.fsPath)) || null;
+}
+
+// Scripts in .tools keep the Python run buttons and get none of ours.
+function isInToolsFolder(game, file) {
+    return path.relative(game.root, file).split(path.sep)[0] === TOOLS_FOLDER;
+}
+
+function isProjectMain(game, file) {
+    return path.relative(game.root, file).toLowerCase() === MAIN_FILE;
 }
 
 function allowsAction(game, action) {
@@ -35,8 +47,6 @@ async function pickGame(games, placeHolder) {
 const ACTION_TITLES = {
     run: "Run",
     compile: "Compile",
-    images: "Generate Images",
-    link: "Setup Commons Link",
     deploy: "Deploy",
     compiledeploy: "Compile and Deploy",
 };
@@ -111,7 +121,7 @@ async function runAction(action, game) {
     return waitForExitCode(execution);
 }
 
-const NO_GAMES_MESSAGE = "No Automaton project in this workspace (see Automaton: Projects; each needs app\\Constants.ahk2 with static name, or run.py and build.py).";
+const NO_GAMES_MESSAGE = "No Automaton project in this workspace (see Automaton: Projects; each needs run.py and build.py at the root).";
 
 async function runActionOnAll(action) {
     const games = findGames().filter((game) => game.inAll && allowsAction(game, action));
@@ -172,12 +182,12 @@ function registerStatusItem(context) {
     context.subscriptions.push(statusItem);
 
     const refreshStatus = () => {
-        const game = gameOfActiveFile(findGames().filter((candidate) => candidate.runnable));
-        vscode.commands.executeCommand("setContext", "automaton.inGame", (game !== null) && (game.kind === "ahk"));
-        vscode.commands.executeCommand("setContext", "automaton.inPythonProject", (game !== null) && (game.kind === "python"));
-        const editor = vscode.window.activeTextEditor;
-        const notRunnable = (editor !== undefined) && isInNotRunnableFolder(editor.document.uri);
-        vscode.commands.executeCommand("setContext", "automaton.notRunnable", notRunnable);
+        const owner = gameOfActiveFile(findGames().filter((candidate) => candidate.runnable));
+        const file = (owner !== null) ? vscode.window.activeTextEditor.document.uri.fsPath : null;
+        const game = ((owner !== null) && !isInToolsFolder(owner, file)) ? owner : null;
+        vscode.commands.executeCommand("setContext", "automaton.inPythonProject", game !== null);
+        vscode.commands.executeCommand("setContext", "automatonWorks.blockPythonRun", game !== null);
+        vscode.commands.executeCommand("setContext", "automatonWorks.projectMain", (game !== null) && isProjectMain(game, file));
         if (game === null) {
             statusItem.hide();
             return;
@@ -202,6 +212,7 @@ function activate(context) {
     registerActionCommands(context);
     registerGameCommands(context, runActionOnFolder);
     registerGitSync(context);
+    registerPythonButtons(context);
     context.subscriptions.push(vscode.commands.registerCommand("automaton.configureAll", configureAll));
     context.subscriptions.push(vscode.commands.registerCommand("automaton.openSettings", openSettings));
     context.subscriptions.push(

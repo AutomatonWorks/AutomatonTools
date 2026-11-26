@@ -1,26 +1,17 @@
 const { execFile } = require("child_process");
 const path = require("path");
 
-const SCRIPT_HOSTS = {
-    ahk: /^autohotkey/i,
-    python: /^pythonw?(\d+)?\.exe$/i,
-};
+const PYTHON_HOST = /^pythonw?(\d+)?\.exe$/i;
 
 function compiledExe(game) {
     return path.join(game.root, ".compiled", `${game.appName}.exe`);
 }
 
-function runScript(game) {
-    if (game.kind === "python") {
-        return path.join(game.root, "run.py");
-    }
-    return path.join(game.root, "app", `${game.appName}.ahk2`);
-}
-
 // Run replaces the script's previous instance; Compile overwrites the exe, which Windows refuses while it runs.
 function killTargets(action, game) {
     if (action === "run") {
-        return { hostPattern: SCRIPT_HOSTS[game.kind], exeName: null, commandLinePart: runScript(game), exePath: null };
+        const runScript = path.join(game.root, "run.py");
+        return { hostPattern: PYTHON_HOST, exeName: null, commandLinePart: runScript, exePath: null };
     }
     if (action === "compile") {
         const exePath = compiledExe(game);

@@ -1,2 +1,3 @@
 *.vsix
+builds/
 __pycache__/

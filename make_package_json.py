@@ -9,8 +9,6 @@ DEFAULT_PULL = DEFAULT_PROJECTS + ["GUI", "commons", "internal-tools", "Automato
 ACTIONS = [
     ("run", "Run", False, "$(play)"),
     ("compile", "Compile", True, "$(gear)"),
-    ("images", "Generate Images", True, None),
-    ("link", "Setup Commons Link", True, None),
     ("deploy", "Deploy", False, None),
     ("compiledeploy", "Compile and Deploy", False, None),
 ]
@@ -73,7 +71,7 @@ commands.append({
     "category": CATEGORY,
 })
 
-BUTTON_WHEN = "(resourceLangId == ahk2 && automaton.inGame) || automaton.inPythonProject"
+BUTTON_WHEN = "automaton.inPythonProject"
 EDITOR_BUTTONS = [
     {"command": "automaton.run", "when": BUTTON_WHEN, "group": "navigation@-20"},
     {"command": "automaton.compile", "when": BUTTON_WHEN, "group": "navigation@-19"},
@@ -82,24 +80,19 @@ EDITOR_BUTTONS = [
 package = {
     "name": "automaton-vscode",
     "displayName": "Automaton tools",
-    "description": "Run, compile, deploy, generate images, link commons and pull for the Automaton repos and the manager",
-    "version": "0.9.3",
+    "description": "Run, compile, deploy and pull for the AutomatonWorks Python repos and the manager",
+    "version": "0.10.0",
     "publisher": "automatonworks",
     "engines": {"vscode": "^1.85.0"},
     "icon": "icon.png",
     "main": "./extension.js",
-    "activationEvents": ["workspaceContains:**/app/Constants.ahk2", "workspaceContains:**/run.py"],
+    "activationEvents": ["workspaceContains:**/run.py"],
     "contributes": {
         "commands": commands,
         "menus": {"editor/title": EDITOR_BUTTONS},
         "configuration": {
             "title": "Automaton tools",
             "properties": {
-                "automaton.autohotkeyPath": {
-                    "type": "string",
-                    "default": "C:\\Program Files\\AutoHotkey\\v2\\AutoHotkey64.exe",
-                    "description": "AutoHotkey v2 executable used to run commons AppCompiler.ahk"
-                },
                 "automaton.projects": {
                     "type": "array",
                     "items": {"type": "string"},
@@ -119,7 +112,7 @@ package = {
                     "items": {"type": "string"},
                     "default": DEFAULT_NOT_RUNNABLE,
                     "order": 2,
-                    "description": "Workspace folders whose scripts are never run or compiled (folder name). The AutoHotkey play button is hidden in them too."
+                    "description": "Workspace folders whose scripts are never run or compiled (folder name)."
                 },
                 "automaton.pullProjects": {
                     "type": "array",
@@ -144,7 +137,7 @@ package = {
                 "automaton.pythonPath": {
                     "type": "string",
                     "default": "python",
-                    "description": "Python executable used for the image generator and to start build.py of Python projects"
+                    "description": "Python executable that starts build.py (it re-runs itself inside the project .venv)"
                 }
             }
         }

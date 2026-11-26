@@ -2,21 +2,9 @@ const vscode = require("vscode");
 const fs = require("fs");
 const path = require("path");
 
-const KIND_ACTIONS = {
-    ahk: ["run", "compile", "images", "link"],
-    python: ["run", "compile", "deploy", "compiledeploy"],
-};
+const ACTIONS = ["run", "compile", "deploy", "compiledeploy"];
 const RUNNABLE_ONLY_ACTIONS = ["run", "compile", "compiledeploy"];
 const DEPLOY_ACTIONS = ["deploy", "compiledeploy"];
-
-function readAppName(root) {
-    const constantsFile = path.join(root, "app", "Constants.ahk2");
-    if (!fs.existsSync(constantsFile)) {
-        return null;
-    }
-    const match = /static\s+name\s*:=\s*"([^"]+)"/.exec(fs.readFileSync(constantsFile, "utf8"));
-    return match ? match[1] : null;
-}
 
 function readBuildAppName(root) {
     const match = /^APP_NAME\s*=\s*"([^"]+)"/m.exec(fs.readFileSync(path.join(root, "build.py"), "utf8"));
@@ -27,19 +15,14 @@ function stripAutomaton(name) {
     return name.replace(/^Automaton\s*|-?\s*Automaton$/i, "") || name;
 }
 
-// AHK games carry app\Constants.ahk2; Python apps (the manager) carry run.py and build.py at the root.
+// A project (a game or the manager) carries run.py and build.py at the root.
 function detectProject(root) {
-    const label = path.basename(root);
-    const appName = readAppName(root);
-    if (appName !== null) {
-        return { kind: "ahk", appName, displayName: label, shortName: stripAutomaton(label) };
+    if (!fs.existsSync(path.join(root, "run.py")) || !fs.existsSync(path.join(root, "build.py"))) {
+        return null;
     }
-    if (fs.existsSync(path.join(root, "run.py")) && fs.existsSync(path.join(root, "build.py"))) {
-        const buildName = readBuildAppName(root);
-        const displayName = buildName.replace(/([a-z])([A-Z])/g, "$1 $2");
-        return { kind: "python", appName: buildName, displayName, shortName: stripAutomaton(displayName) };
-    }
-    return null;
+    const buildName = readBuildAppName(root);
+    const displayName = buildName.replace(/([a-z])([A-Z])/g, "$1 $2");
+    return { appName: buildName, displayName, shortName: stripAutomaton(displayName) };
 }
 
 function folderList(setting) {
@@ -65,20 +48,12 @@ function findGames() {
         }
         const runnable = !notRunnable.includes(key);
         const deployable = fs.existsSync(path.join(root, "deploy.py"));
-        const actions = KIND_ACTIONS[detected.kind]
+        const actions = ACTIONS
             .filter((action) => runnable || !RUNNABLE_ONLY_ACTIONS.includes(action))
             .filter((action) => deployable || !DEPLOY_ACTIONS.includes(action));
         games.push({ folder, root, label, ...detected, inAll: inAll.includes(key), runnable, actions });
     }
     return games;
-}
-
-function isInNotRunnableFolder(uri) {
-    const folder = vscode.workspace.getWorkspaceFolder(uri);
-    if (!folder) {
-        return false;
-    }
-    return folderList("notRunnable").includes(path.basename(folder.uri.fsPath).toLowerCase());
 }
 
 function settingsTarget(setting) {
@@ -112,4 +87,4 @@ function openSettings() {
     return vscode.commands.executeCommand("workbench.action.openSettings", "@ext:automatonworks.automaton-vscode");
 }
 
-module.exports = { findGames, isInNotRunnableFolder, configureAll, openSettings, settingsTarget, detectProject };
+module.exports = { findGames, configureAll, openSettings, settingsTarget, detectProject };

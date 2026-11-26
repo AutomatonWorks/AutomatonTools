@@ -5,7 +5,8 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).parent
-PROFILE = "Automatons"
+PROFILE = "AutomatonWorks"
+BUILDS = ROOT / "builds"
 EXTENSIONS_DIR = Path.home() / ".vscode" / "extensions"
 
 CONTENT_TYPES = """<?xml version="1.0" encoding="utf-8"?>
@@ -71,7 +72,8 @@ def build(seed_installed):
     package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
     if seed_installed:
         package = with_project_commands(package)
-    vsix = ROOT / f"{package['name']}-{package['version']}.vsix"
+    BUILDS.mkdir(exist_ok=True)
+    vsix = BUILDS / f"{package['name']}-{package['version']}.vsix"
     manifest = MANIFEST.format(
         name=package["name"],
         version=package["version"],
@@ -90,6 +92,7 @@ def build(seed_installed):
         archive.write(ROOT / "git_sync.js", "extension/git_sync.js")
         archive.write(ROOT / "executions.js", "extension/executions.js")
         archive.write(ROOT / "process_kill.js", "extension/process_kill.js")
+        archive.write(ROOT / "python_buttons.js", "extension/python_buttons.js")
         archive.write(ROOT / "icon.png", "extension/icon.png")
     return vsix
 

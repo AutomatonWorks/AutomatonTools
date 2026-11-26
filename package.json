@@ -1,8 +1,8 @@
 {
     "name": "automaton-vscode",
     "displayName": "Automaton tools",
-    "description": "Run, compile, deploy, generate images, link commons and pull for the Automaton repos and the manager",
-    "version": "0.9.3",
+    "description": "Run, compile, deploy and pull for the AutomatonWorks Python repos and the manager",
+    "version": "0.10.0",
     "publisher": "automatonworks",
     "engines": {
         "vscode": "^1.85.0"
@@ -10,7 +10,6 @@
     "icon": "icon.png",
     "main": "./extension.js",
     "activationEvents": [
-        "workspaceContains:**/app/Constants.ahk2",
         "workspaceContains:**/run.py"
     ],
     "contributes": {
@@ -38,36 +37,6 @@
             {
                 "command": "automaton.compile.all",
                 "title": "Compile All",
-                "category": "Automaton"
-            },
-            {
-                "command": "automaton.images",
-                "title": "Generate Images (current file's game)",
-                "category": "Automaton"
-            },
-            {
-                "command": "automaton.images.pick",
-                "title": "Generate Images...",
-                "category": "Automaton"
-            },
-            {
-                "command": "automaton.images.all",
-                "title": "Generate Images All",
-                "category": "Automaton"
-            },
-            {
-                "command": "automaton.link",
-                "title": "Setup Commons Link (current file's game)",
-                "category": "Automaton"
-            },
-            {
-                "command": "automaton.link.pick",
-                "title": "Setup Commons Link...",
-                "category": "Automaton"
-            },
-            {
-                "command": "automaton.link.all",
-                "title": "Setup Commons Link All",
                 "category": "Automaton"
             },
             {
@@ -120,12 +89,12 @@
             "editor/title": [
                 {
                     "command": "automaton.run",
-                    "when": "(resourceLangId == ahk2 && automaton.inGame) || automaton.inPythonProject",
+                    "when": "automaton.inPythonProject",
                     "group": "navigation@-20"
                 },
                 {
                     "command": "automaton.compile",
-                    "when": "(resourceLangId == ahk2 && automaton.inGame) || automaton.inPythonProject",
+                    "when": "automaton.inPythonProject",
                     "group": "navigation@-19"
                 }
             ]
@@ -133,11 +102,6 @@
         "configuration": {
             "title": "Automaton tools",
             "properties": {
-                "automaton.autohotkeyPath": {
-                    "type": "string",
-                    "default": "C:\\Program Files\\AutoHotkey\\v2\\AutoHotkey64.exe",
-                    "description": "AutoHotkey v2 executable used to run commons AppCompiler.ahk"
-                },
                 "automaton.projects": {
                     "type": "array",
                     "items": {
@@ -175,7 +139,7 @@
                         "internal-tools"
                     ],
                     "order": 2,
-                    "description": "Workspace folders whose scripts are never run or compiled (folder name). The AutoHotkey play button is hidden in them too."
+                    "description": "Workspace folders whose scripts are never run or compiled (folder name)."
                 },
                 "automaton.pullProjects": {
                     "type": "array",
@@ -211,7 +175,7 @@
                 "automaton.pythonPath": {
                     "type": "string",
                     "default": "python",
-                    "description": "Python executable used for the image generator and to start build.py of Python projects"
+                    "description": "Python executable that starts build.py (it re-runs itself inside the project .venv)"
                 }
             }
         }

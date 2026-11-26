@@ -6,12 +6,10 @@ const { findGames } = require("./projects");
 const ACTION_TITLES = {
     run: "Run",
     compile: "Compile",
-    images: "Generate Images",
-    link: "Setup Commons Link",
     deploy: "Deploy",
     compiledeploy: "Compile and Deploy",
 };
-const PER_GAME_COMMAND = /^automaton\.(run|compile|images|link|deploy|compiledeploy)\.(?!all$|pick$)[^.]+$/;
+const PER_GAME_COMMAND = /^automaton\.(run|compile|deploy|compiledeploy)\.(?!all$|pick$)[^.]+$/;
 
 function commandSpecs() {
     const specs = [];
