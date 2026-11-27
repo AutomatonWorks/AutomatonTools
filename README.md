@@ -1,52 +1,60 @@
 # AutomatonTools
 
-VS Code extension for the AutomatonWorks Python repos: the games (GI-Automaton, HSR-Automaton, ZZZ-Automaton) and the Automaton Manager (folder AutomatonManager), next to GUI, commons and internal-tools.
+VS Code extension for the AutomatonWorks repos: run, compile, deploy and release the games (GI, HSR, ZZZ) and the Automaton Manager, and keep every repo pulled.
 
-Commands (Command Palette, prefix `Automaton:`), for Run, Compile, Deploy, Compile and Deploy and Release (only Compile has `All`):
+## Commands
 
-- `<Action> (current file's game)`: runs on the project that owns the active file, or asks if there is none.
-- `<Action>...`: quick pick of the projects found in the workspace.
-- `<Action> All`: the projects in `automaton.allProjects`, one after another, never in parallel.
-- `Choose projects for All`: multi-select of the project list, saves `automaton.allProjects`.
-- `<Action> <Project>`: one entry per project in `automaton.projects` (no Run/Compile for `automaton.notRunnable`). Palette entries can only come from package.json, so the extension rewrites its installed package.json when the lists change and offers a window reload.
-- `Settings`: opens the extension settings.
-- `Fetch and Pull All`: fetches every repo in `automaton.pullProjects` and pulls (`--ff-only`) the ones behind. Failures go to the `Automaton Git` output channel.
-- `Choose repos for Fetch and Pull`: multi-select of the workspace folders that are git repos, saves `automaton.pullProjects`.
+All under `Automaton:` in the Command Palette. Each action (Run, Compile, Deploy, Compile and Deploy, Release) comes in three forms:
 
-With `automaton.autoFetch` on, those repos are fetched every `automaton.autoFetchSeconds` seconds and a notification offers to pull when one has new commits. A dismissed update is not announced again until more commits land upstream.
+- `<Action> (current file's game)`: the project of the open file.
+- `<Action>...`: pick a project from a list.
+- `<Action> <Project>`: one command per project, e.g. `Run ZZZ`.
 
-A workspace folder counts as a project when its name is in `automaton.projects` and it has `run.py` and `build.py` at the root. Its name comes from `APP_NAME` in build.py: `ZZZ-Automaton` in messages and `ZZZ` in the per-project commands (`Run ZZZ`, `Compile ZZZ`); the manager is "Automaton Manager" and `Run Manager`.
+`Compile All` compiles every project in `automaton.allProjects`. To change that list edit `Choose projects for All`.
 
-- Run: `.venv\Scripts\python.exe run.py` (the .venv must exist). Running it again kills the previous instance and restarts it without asking. `Stop running games` terminates those runs.
-- Compile: `<automaton.pythonPath> build.py`, which re-executes inside the .venv and writes `.compiled\<APP_NAME>.exe`. A running copy of that exe is killed first, since Windows refuses to overwrite it.
-- Deploy and Compile and Deploy: only when the repo has a `deploy.py`. Compile and Deploy deploys only if the compile exits with 0.
-- Release: only when the repo has `.github/workflows/release.yml`. After a confirmation that shows `src/VERSION` and warns about unpushed commits, it starts that workflow on `main` through the GitHub API with the token git pushes with (`git credential fill`), follows the run in the status bar and links the release or the failed run at the end. The workflow tests, builds the exe and publishes it as release `v<VERSION>`, and refuses a version that is already released. Runs go to the `Automaton Release` output channel.
+# Actions:
 
-The automatons elevate themselves, so the kill before Run and Compile goes through an elevated PowerShell (no UAC prompt with ConsentPromptBehaviorAdmin=0).
+- **Run**: starts `run.py` from the project's `.venv`. Running it again restarts it.
+- **Compile**: runs `build.py` and writes `.compiled\<APP_NAME>.exe`. If an auto is running it'll be closed first before compiling.
+- **Deploy**: only for repos with a `deploy.py`.
+- **Release**: only for repos with `.github/workflows/release.yml`. Asks for confirmation (shows the version, warns about unpushed commits), starts the workflow on `main`, and links the release or the failed run when it's done.
 
-On any file of a project, two editor title buttons appear first on the left: "Run automaton" (play) and "Compile automaton" (gear). A status bar item compiles the project of the active file. Files under the project's `.tools` folder get none of them.
+The editor title bar gets Run and Compile buttons (play and cog button) on any project file, and the status bar gets a Compile button.
+In our auto projects, the Python extension's own run buttons are hidden so they don't get pressed by mistake and the debug buttons only show on `src\Main.py`.
+The exception is `.tools`, you can run those like normal.
 
-In a project the Python extensions' own run buttons ("Run Python File", "Run as task") are hidden, and their debug buttons only show on `src\Main.py`; files under `.tools` keep all of them. Those extensions have no setting for it, so on activation the extension adds the context keys `automatonWorks.blockPythonRun` and `automatonWorks.projectMain` to their `editor/title/run` conditions, again after each of their updates, and offers a window reload.
+## Git
 
-The extension updates itself: at start and every 6 hours it reads the latest release of AutomatonWorks/AutomatonTools on GitHub and, when its version is newer than the installed one, downloads its vsix, installs it into the current profile, carries the per-project commands over and offers a window reload. Checks and failures go to the `Automaton Update` output channel.
+- `Fetch and Pull All`: fetches every repo in `automaton.pullProjects` and fast-forwards the ones that are behind.
+- `Choose repos for Fetch and Pull`: sets that list.
+
+With `automaton.autoFetch` on, the repos are fetched in the background and you get a notification when one has new commits.
+
+## Updates
+
+The extension checks GitHub for a new release at startup and every 6 hours, installs it, and offers a window reload.
 
 ## Settings
 
-- `automaton.projects`: workspace folder names that are Automaton projects. Add or remove projects here, no rebuild needed.
-- `automaton.allProjects`: projects included in the All commands.
-- `automaton.notRunnable`: workspace folders that are never run or compiled (GUI, commons, internal-tools).
-- `automaton.pullProjects`: repos for Fetch and Pull All and the periodic fetch (default: the games and the manager, plus GUI, commons, internal-tools and AutomatonTools).
-- `automaton.autoFetch`: periodic fetch on or off (default on).
-- `automaton.autoFetchSeconds`: seconds between fetches (default 60, minimum 10).
-- `automaton.pythonPath`: Python that starts `build.py`.
+| Setting | What it does |
+|---|---|
+| `Projects` | Workspace folders that are Automaton projects (need `run.py` and `build.py`). |
+| `All Projects` | Projects included in `Compile All`. |
+| `Not Runnable` | Folders that are never run or compiled. |
+| `Pull Projects` | Repos for Fetch and Pull. |
+| `Auto Fetch` | Background fetch on or off (default on). |
+| `Auto Fetch Seconds` | Seconds between fetches (default 60, minimum 10). |
+| `Python Path` | Python used to start `build.py`. |
 
-## Build and install
+Changing `automaton.projects` adds or removes the per-project commands after a window reload.
 
-`package.json` is generated, edit `make_package_json.py` and run it.
+## Build
+
+`package.json` is generated: edit `make_package_json.py` instead.
 
 ```text
 python make_package_json.py
 python build_vsix.py --install
 ```
 
-The vsix goes to `builds\`. `--install` installs it into the `AutomatonWorks` VS Code profile. Reload the window afterwards.
+The vsix goes to `builds\`. `--install` installs it into the `AutomatonWorks` profile; reload the window afterwards.
