@@ -3,15 +3,15 @@ from pathlib import Path
 
 DEFAULT_PROJECTS = ["GI-Automaton", "HSR-Automaton", "ZZZ-Automaton", "AutomatonManager"]
 DEFAULT_ALL = ["GI-Automaton", "ZZZ-Automaton"]
-DEFAULT_NOT_RUNNABLE = ["GUI", "commons", "internal-tools"]
-DEFAULT_PULL = DEFAULT_PROJECTS + ["GUI", "commons", "internal-tools", "AutomatonTools"]
+DEFAULT_PULL = DEFAULT_PROJECTS + ["GUI", "commons", "Yorha", "internal-tools", "AutomatonTools"]
 
+# id, title, has All, editor icon, only for runnable projects, file the project needs (relative to its root)
 ACTIONS = [
-    ("run", "Run", False, "$(play)"),
-    ("compile", "Compile", True, "$(gear)"),
-    ("deploy", "Deploy", False, None),
-    ("compiledeploy", "Compile and Deploy", False, None),
-    ("release", "Release", False, None),
+    ("run", "Run", False, "$(play)", True, None),
+    ("compile", "Compile", True, "$(gear)", True, None),
+    ("deploy", "Deploy", False, None, False, "deploy.py"),
+    ("compiledeploy", "Compile and Deploy", False, None, True, "deploy.py"),
+    ("release", "Release", False, None, False, ".github/workflows/release.yml"),
 ]
 
 CATEGORY = "Automaton"
@@ -22,7 +22,7 @@ BUTTON_TITLES = {
 }
 
 commands = []
-for action_id, action_title, has_all, icon in ACTIONS:
+for action_id, action_title, has_all, icon, _, _ in ACTIONS:
     active_command = {
         "command": f"automaton.{action_id}",
         "title": f"{action_title} (current file's game)",
@@ -82,12 +82,17 @@ package = {
     "name": "automaton-vscode",
     "displayName": "Automaton tools",
     "description": "Run, compile, deploy, release and pull for the AutomatonWorks Python repos and the manager",
-    "version": "0.12.0",
+    "version": "0.12.1",
     "publisher": "automatonworks",
     "engines": {"vscode": "^1.85.0"},
     "icon": "icon.png",
     "main": "./extension.js",
     "activationEvents": ["workspaceContains:**/run.py"],
+    # read by projects.js and game_commands.js; VS Code ignores it
+    "automatonActions": [
+        {"id": action_id, "title": action_title, "runnableOnly": runnable_only, "requires": requires}
+        for action_id, action_title, _, _, runnable_only, requires in ACTIONS
+    ],
     "contributes": {
         "commands": commands,
         "menus": {"editor/title": EDITOR_BUTTONS},
@@ -111,9 +116,9 @@ package = {
                 "automaton.notRunnable": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "default": DEFAULT_NOT_RUNNABLE,
+                    "default": [],
                     "order": 2,
-                    "description": "Workspace folders whose scripts are never run or compiled (folder name)."
+                    "description": "Projects that are paused: no Run or Compile for them (folder name)."
                 },
                 "automaton.pullProjects": {
                     "type": "array",

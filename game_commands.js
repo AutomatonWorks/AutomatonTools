@@ -1,33 +1,31 @@
 const vscode = require("vscode");
 const fs = require("fs");
 const path = require("path");
-const { findGames } = require("./projects");
+const { OWN_ACTIONS, findGames } = require("./projects");
 
-const ACTION_TITLES = {
-    run: "Run",
-    compile: "Compile",
-    deploy: "Deploy",
-    compiledeploy: "Compile and Deploy",
-    release: "Release",
-};
-const PER_GAME_COMMAND = /^automaton\.(run|compile|deploy|compiledeploy|release)\.(?!all$|pick$)[^.]+$/;
+function perGameCommand(actionDefs) {
+    const ids = actionDefs.map((action) => action.id).join("|");
+    return new RegExp(`^automaton\\.(${ids})\\.(?!all$|pick$)[^.]+$`);
+}
 
-function commandSpecs() {
+function commandSpecs(actionDefs) {
+    const titles = new Map(actionDefs.map((action) => [action.id, action.title]));
     const specs = [];
-    for (const game of findGames()) {
+    for (const game of findGames(actionDefs)) {
         const name = game.shortName;
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
         for (const action of game.actions) {
-            specs.push({ command: `automaton.${action}.${slug}`, title: `${ACTION_TITLES[action]} ${name}`, action, folder: game.label });
+            specs.push({ command: `automaton.${action}.${slug}`, title: `${titles.get(action)} ${name}`, action, folder: game.label });
         }
     }
     return specs;
 }
 
 // Palette entries only exist in package.json, so the installed manifest is rewritten and the window needs a reload.
-function writeProjectCommands(manifestPath, specs) {
+function writeProjectCommands(manifestPath, specs, actionDefs) {
     const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-    const fixedCommands = manifest.contributes.commands.filter((entry) => !PER_GAME_COMMAND.test(entry.command));
+    const pattern = perGameCommand(actionDefs);
+    const fixedCommands = manifest.contributes.commands.filter((entry) => !pattern.test(entry.command));
     const gameCommands = specs.map((spec) => ({ command: spec.command, title: spec.title, category: "Automaton" }));
     const commands = [...fixedCommands, ...gameCommands];
     if (JSON.stringify(commands) === JSON.stringify(manifest.contributes.commands)) {
@@ -52,7 +50,7 @@ function registerGameCommands(context, runActionOnFolder) {
     const registered = new Map();
 
     const refresh = () => {
-        const specs = commandSpecs();
+        const specs = commandSpecs(OWN_ACTIONS);
         const wanted = new Set(specs.map((spec) => spec.command));
         for (const [command, disposable] of registered) {
             if (!wanted.has(command)) {
@@ -65,7 +63,7 @@ function registerGameCommands(context, runActionOnFolder) {
                 registered.set(spec.command, vscode.commands.registerCommand(spec.command, () => runActionOnFolder(spec.action, spec.folder)));
             }
         }
-        if (writeProjectCommands(path.join(context.extensionPath, "package.json"), specs)) {
+        if (writeProjectCommands(path.join(context.extensionPath, "package.json"), specs, OWN_ACTIONS)) {
             offerReload();
         }
     };
@@ -82,9 +80,10 @@ function registerGameCommands(context, runActionOnFolder) {
     refresh();
 }
 
-// An update installs a manifest without the per-project commands; carrying ours over saves a second reload.
+// An update installs a manifest without the per-project commands; writing them with its actions saves a second reload.
 function carryProjectCommands(manifestPath) {
-    writeProjectCommands(manifestPath, commandSpecs());
+    const newActions = JSON.parse(fs.readFileSync(manifestPath, "utf8")).automatonActions;
+    writeProjectCommands(manifestPath, commandSpecs(newActions), newActions);
 }
 
 module.exports = { registerGameCommands, carryProjectCommands };

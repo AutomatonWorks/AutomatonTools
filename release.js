@@ -12,10 +12,6 @@ const FIND_RUN_ATTEMPTS = 12;
 
 let log = null;
 
-function hasReleaseWorkflow(root) {
-    return fs.existsSync(path.join(root, ".github", "workflows", RELEASE_WORKFLOW));
-}
-
 function git(root, args, input) {
     return new Promise((resolve, reject) => {
         const child = execFile("git", ["-C", root, ...args], { env: { ...process.env, GIT_TERMINAL_PROMPT: "0" } },
@@ -157,4 +153,4 @@ async function releaseProject(game) {
     }
 }
 
-module.exports = { releaseProject, hasReleaseWorkflow };
+module.exports = { releaseProject };

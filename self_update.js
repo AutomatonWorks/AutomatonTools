@@ -59,13 +59,23 @@ async function offerReload(version) {
     }
 }
 
-async function checkForUpdate(context, log) {
+// Each version is offered once per window: an ignored or dismissed offer comes back at the next start.
+async function checkForUpdate(context, log, offered) {
     const current = context.extension.packageJSON.version;
     const release = await latestRelease();
-    if (!isNewer(release.version, current) || (release.asset === undefined)) {
+    if (!isNewer(release.version, current) || (release.asset === undefined) || offered.has(release.version)) {
         return false;
     }
-    log.appendLine(`Automaton tools ${release.version} found (installed ${current}), updating`);
+    offered.add(release.version);
+    log.appendLine(`Automaton tools ${release.version} found (installed ${current})`);
+    const choice = await vscode.window.showInformationMessage(
+        `Automaton tools ${release.version} is available (installed ${current}).`,
+        "Update"
+    );
+    if (choice !== "Update") {
+        return false;
+    }
+    log.appendLine(`Updating to ${release.version}`);
     const vsix = await download(release.asset);
     await vscode.commands.executeCommand("workbench.extensions.installExtension", vscode.Uri.file(vsix));
     const manifestPath = installedManifest(context, release.version);
@@ -76,14 +86,15 @@ async function checkForUpdate(context, log) {
     return true;
 }
 
-// Checks the project's latest GitHub release at start and every few hours, installs it when newer and offers a reload.
+// Checks the project's latest GitHub release at start and every few hours; when newer, asks, installs it and offers a reload.
 function registerSelfUpdate(context) {
     const log = vscode.window.createOutputChannel("Automaton Update");
     context.subscriptions.push(log);
+    const offered = new Set();
     let timer = null;
     const check = async () => {
         try {
-            if (await checkForUpdate(context, log)) {
+            if (await checkForUpdate(context, log, offered)) {
                 clearInterval(timer);
             }
         } catch (error) {

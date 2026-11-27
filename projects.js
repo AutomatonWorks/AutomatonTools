@@ -1,11 +1,9 @@
 const vscode = require("vscode");
 const fs = require("fs");
 const path = require("path");
-const { hasReleaseWorkflow } = require("./release");
 
-const ACTIONS = ["run", "compile", "deploy", "compiledeploy", "release"];
-const RUNNABLE_ONLY_ACTIONS = ["run", "compile", "compiledeploy"];
-const DEPLOY_ACTIONS = ["deploy", "compiledeploy"];
+// The installed manifest's action rules; an update passes the new manifest's ones instead.
+const OWN_ACTIONS = require("./package.json").automatonActions;
 
 function readBuildAppName(root) {
     const match = /^APP_NAME\s*=\s*"([^"]+)"/m.exec(fs.readFileSync(path.join(root, "build.py"), "utf8"));
@@ -31,7 +29,14 @@ function folderList(setting) {
     return folders.map((folder) => folder.toLowerCase());
 }
 
-function findGames() {
+function availableActions(root, runnable, actionDefs) {
+    return actionDefs
+        .filter((action) => runnable || !action.runnableOnly)
+        .filter((action) => (action.requires === null) || fs.existsSync(path.join(root, action.requires)))
+        .map((action) => action.id);
+}
+
+function findGames(actionDefs = OWN_ACTIONS) {
     const projects = folderList("projects");
     const inAll = folderList("allProjects");
     const notRunnable = folderList("notRunnable");
@@ -48,12 +53,7 @@ function findGames() {
             continue;
         }
         const runnable = !notRunnable.includes(key);
-        const deployable = fs.existsSync(path.join(root, "deploy.py"));
-        const releasable = hasReleaseWorkflow(root);
-        const actions = ACTIONS
-            .filter((action) => runnable || !RUNNABLE_ONLY_ACTIONS.includes(action))
-            .filter((action) => deployable || !DEPLOY_ACTIONS.includes(action))
-            .filter((action) => releasable || (action !== "release"));
+        const actions = availableActions(root, runnable, actionDefs);
         games.push({ folder, root, label, ...detected, inAll: inAll.includes(key), runnable, actions });
     }
     return games;
@@ -90,4 +90,4 @@ function openSettings() {
     return vscode.commands.executeCommand("workbench.action.openSettings", "@ext:automatonworks.automaton-vscode");
 }
 
-module.exports = { findGames, configureAll, openSettings, settingsTarget, detectProject };
+module.exports = { OWN_ACTIONS, findGames, configureAll, openSettings, settingsTarget, detectProject };

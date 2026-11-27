@@ -2,7 +2,7 @@
     "name": "automaton-vscode",
     "displayName": "Automaton tools",
     "description": "Run, compile, deploy, release and pull for the AutomatonWorks Python repos and the manager",
-    "version": "0.12.0",
+    "version": "0.12.1",
     "publisher": "automatonworks",
     "engines": {
         "vscode": "^1.85.0"
@@ -11,6 +11,38 @@
     "main": "./extension.js",
     "activationEvents": [
         "workspaceContains:**/run.py"
+    ],
+    "automatonActions": [
+        {
+            "id": "run",
+            "title": "Run",
+            "runnableOnly": true,
+            "requires": null
+        },
+        {
+            "id": "compile",
+            "title": "Compile",
+            "runnableOnly": true,
+            "requires": null
+        },
+        {
+            "id": "deploy",
+            "title": "Deploy",
+            "runnableOnly": false,
+            "requires": "deploy.py"
+        },
+        {
+            "id": "compiledeploy",
+            "title": "Compile and Deploy",
+            "runnableOnly": true,
+            "requires": "deploy.py"
+        },
+        {
+            "id": "release",
+            "title": "Release",
+            "runnableOnly": false,
+            "requires": ".github/workflows/release.yml"
+        }
     ],
     "contributes": {
         "commands": [
@@ -143,13 +175,9 @@
                     "items": {
                         "type": "string"
                     },
-                    "default": [
-                        "GUI",
-                        "commons",
-                        "internal-tools"
-                    ],
+                    "default": [],
                     "order": 2,
-                    "description": "Workspace folders whose scripts are never run or compiled (folder name)."
+                    "description": "Projects that are paused: no Run or Compile for them (folder name)."
                 },
                 "automaton.pullProjects": {
                     "type": "array",
@@ -163,6 +191,7 @@
                         "AutomatonManager",
                         "GUI",
                         "commons",
+                        "Yorha",
                         "internal-tools",
                         "AutomatonTools"
                     ],

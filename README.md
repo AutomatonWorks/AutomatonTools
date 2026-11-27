@@ -32,7 +32,7 @@ With `automaton.autoFetch` on, the repos are fetched in the background and you g
 
 ## Updates
 
-The extension checks GitHub for a new release at startup and every 6 hours, installs it, and offers a window reload.
+The extension checks GitHub for a new release at startup and every 6 hours, asks before installing it, and offers a window reload.
 
 ## Settings
 
@@ -40,7 +40,7 @@ The extension checks GitHub for a new release at startup and every 6 hours, inst
 |---|---|
 | `Projects` | Workspace folders that are Automaton projects (need `run.py` and `build.py`). |
 | `All Projects` | Projects included in `Compile All`. |
-| `Not Runnable` | Folders that are never run or compiled. |
+| `Not Runnable` | Projects that are paused: no Run or Compile for them. Empty by default. |
 | `Pull Projects` | Repos for Fetch and Pull. |
 | `Auto Fetch` | Background fetch on or off (default on). |
 | `Auto Fetch Seconds` | Seconds between fetches (default 60, minimum 10). |
