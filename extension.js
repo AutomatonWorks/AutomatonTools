@@ -7,9 +7,10 @@ const { registerGitSync } = require("./git_sync");
 const { killReplacedProcess } = require("./process_kill");
 const { registerPythonButtons } = require("./python_buttons");
 const { registerSelfUpdate } = require("./self_update");
+const { releaseProject } = require("./release");
 
-const ACTION_IDS = ["run", "compile", "deploy", "compiledeploy"];
-const NO_ALL_ACTIONS = ["run", "deploy", "compiledeploy"];
+const ACTION_IDS = ["run", "compile", "deploy", "compiledeploy", "release"];
+const NO_ALL_ACTIONS = ["run", "deploy", "compiledeploy", "release"];
 const TOOLS_FOLDER = ".tools";
 const MAIN_FILE = path.join("src", "main.py");
 
@@ -50,6 +51,7 @@ const ACTION_TITLES = {
     compile: "Compile",
     deploy: "Deploy",
     compiledeploy: "Compile and Deploy",
+    release: "Release",
 };
 
 function waitForExitCode(execution) {
@@ -93,6 +95,9 @@ async function runAction(action, game) {
         const reason = game.runnable ? "does not support it" : "is in Automaton: Not Runnable";
         vscode.window.showErrorMessage(`${game.displayName} ${reason}, ${ACTION_TITLES[action]} is disabled for it.`);
         return null;
+    }
+    if (action === "release") {
+        return releaseProject(game);
     }
     if (action === "compiledeploy") {
         const compileExit = await runAction("compile", game);

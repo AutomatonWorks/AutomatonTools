@@ -1,8 +1,9 @@
 const vscode = require("vscode");
 const fs = require("fs");
 const path = require("path");
+const { hasReleaseWorkflow } = require("./release");
 
-const ACTIONS = ["run", "compile", "deploy", "compiledeploy"];
+const ACTIONS = ["run", "compile", "deploy", "compiledeploy", "release"];
 const RUNNABLE_ONLY_ACTIONS = ["run", "compile", "compiledeploy"];
 const DEPLOY_ACTIONS = ["deploy", "compiledeploy"];
 
@@ -48,9 +49,11 @@ function findGames() {
         }
         const runnable = !notRunnable.includes(key);
         const deployable = fs.existsSync(path.join(root, "deploy.py"));
+        const releasable = hasReleaseWorkflow(root);
         const actions = ACTIONS
             .filter((action) => runnable || !RUNNABLE_ONLY_ACTIONS.includes(action))
-            .filter((action) => deployable || !DEPLOY_ACTIONS.includes(action));
+            .filter((action) => deployable || !DEPLOY_ACTIONS.includes(action))
+            .filter((action) => releasable || (action !== "release"));
         games.push({ folder, root, label, ...detected, inAll: inAll.includes(key), runnable, actions });
     }
     return games;

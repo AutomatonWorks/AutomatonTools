@@ -2,7 +2,7 @@
 
 VS Code extension for the AutomatonWorks Python repos: the games (GI-Automaton, HSR-Automaton, ZZZ-Automaton) and the Automaton Manager (folder AutomatonManager), next to GUI, commons and internal-tools.
 
-Commands (Command Palette, prefix `Automaton:`), for Run, Compile, Deploy and Compile and Deploy (only Compile has `All`):
+Commands (Command Palette, prefix `Automaton:`), for Run, Compile, Deploy, Compile and Deploy and Release (only Compile has `All`):
 
 - `<Action> (current file's game)`: runs on the project that owns the active file, or asks if there is none.
 - `<Action>...`: quick pick of the projects found in the workspace.
@@ -20,6 +20,7 @@ A workspace folder counts as a project when its name is in `automaton.projects` 
 - Run: `.venv\Scripts\python.exe run.py` (the .venv must exist). Running it again kills the previous instance and restarts it without asking. `Stop running games` terminates those runs.
 - Compile: `<automaton.pythonPath> build.py`, which re-executes inside the .venv and writes `.compiled\<APP_NAME>.exe`. A running copy of that exe is killed first, since Windows refuses to overwrite it.
 - Deploy and Compile and Deploy: only when the repo has a `deploy.py`. Compile and Deploy deploys only if the compile exits with 0.
+- Release: only when the repo has `.github/workflows/release.yml`. After a confirmation that shows `src/VERSION` and warns about unpushed commits, it starts that workflow on `main` through the GitHub API with the token git pushes with (`git credential fill`), follows the run in the status bar and links the release or the failed run at the end. The workflow tests, builds the exe and publishes it as release `v<VERSION>`, and refuses a version that is already released. Runs go to the `Automaton Release` output channel.
 
 The automatons elevate themselves, so the kill before Run and Compile goes through an elevated PowerShell (no UAC prompt with ConsentPromptBehaviorAdmin=0).
 

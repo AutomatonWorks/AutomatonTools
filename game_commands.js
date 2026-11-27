@@ -8,8 +8,9 @@ const ACTION_TITLES = {
     compile: "Compile",
     deploy: "Deploy",
     compiledeploy: "Compile and Deploy",
+    release: "Release",
 };
-const PER_GAME_COMMAND = /^automaton\.(run|compile|deploy|compiledeploy)\.(?!all$|pick$)[^.]+$/;
+const PER_GAME_COMMAND = /^automaton\.(run|compile|deploy|compiledeploy|release)\.(?!all$|pick$)[^.]+$/;
 
 function commandSpecs() {
     const specs = [];
